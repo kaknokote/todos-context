@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
-const TodoList = () => {
+const TodoContext = createContext();
+
+const TodoProvider = ({ children }) => {
   const [todos, setTodos] = useState([]);
-  const [newTodo, setNewTodo] = useState("");
-  const [searchQuery, setSearchQuery] = useState(""); 
+  const [searchQuery, setSearchQuery] = useState("");
   const [isSorted, setIsSorted] = useState(false);
   const API_URL = 'http://localhost:5000/todos';
 
@@ -17,7 +18,7 @@ const TodoList = () => {
       .catch((error) => console.error('Ошибка загрузки данных:', error));
   }, []);
 
-  const addTodo = () => {
+  const addTodo = (newTodo) => {
     const newTask = { title: newTodo, completed: false };
     fetch(API_URL, {
       method: 'POST',
@@ -26,7 +27,6 @@ const TodoList = () => {
     })
       .then((res) => res.json())
       .then((task) => setTodos([...todos, task]));
-    setNewTodo("");
   };
 
   const deleteTodo = (id) => {
@@ -56,44 +56,23 @@ const TodoList = () => {
     : filteredTodos;
 
   return (
-    <div>
-      <input
-        type="text"
-        placeholder="Добавить задачу..."
-        value={newTodo}
-        onChange={(e) => setNewTodo(e.target.value)}
-      />
-      <button onClick={addTodo} className={'.button'}>
-        Добавить
-      </button>
-      <br></br>
-      <input
-        type="text"
-        placeholder="Поиск..."
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-      />
-      <button onClick={() => setIsSorted(!isSorted)} className={'.button'}>
-        {isSorted ? "Отключить сортировку" : "Сортировать по алфавиту"}
-      </button>
-
-      <ul>
-        {sortedTodos.map((todo) => (
-          <li key={todo.id}>
-            <input
-              type="text"
-              defaultValue={todo.title}
-              onBlur={(e) => updateTodo(todo.id, e.target.value)}
-            />
-            <button onClick={() => deleteTodo(todo.id)}>
-              Удалить
-            </button>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <TodoContext.Provider
+      value={{
+        todos: sortedTodos,
+        addTodo,
+        deleteTodo,
+        updateTodo,
+        searchQuery,
+        setSearchQuery,
+        isSorted,
+        setIsSorted,
+      }}
+    >
+      {children}
+    </TodoContext.Provider>
   );
 };
 
+const useTodos = () => useContext(TodoContext);
 
-export default TodoList;
+export { TodoProvider, useTodos };

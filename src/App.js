@@ -1,12 +1,16 @@
 import React from 'react';
+import { TodoProvider } from './TodoContext';
+import TodoAdder from './TodoAdder';
+import TodoFilters from './TodoFilters';
 import TodoList from './TodoList';
 
 function App() {
-
   return (
-    <div>
+    <TodoProvider>
+      <TodoAdder />
+      <TodoFilters />
       <TodoList />
-    </div>
+    </TodoProvider>
   );
 }
 
